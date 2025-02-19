@@ -1,3 +1,5 @@
+DSA (Data Structures and Algorithms)
+
 Sparse Matrix Operations in JavaScript
 This project implements sparse matrix operations (addition, subtraction, multiplication) using a memory-efficient approach. The matrices are stored using a sparse representation, where only non-zero elements are saved. This is ideal for large matrices where most elements are zero.
 
