@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 class SparseMatrix {
     constructor(matrixFilePath = null, numRows = null, numCols = null) {
@@ -36,14 +37,13 @@ class SparseMatrix {
     }
 
     getElement(currRow, currCol) {
-        return this.matrix[`${currRow},${currCol}`] || 0;
+        return this.matrix[`${currRow},${currCol}`] || 0; 
     }
-
     setElement(currRow, currCol, value) {
         if (value !== 0) {
             this.matrix[`${currRow},${currCol}`] = value;
         } else {
-            delete this.matrix[`${currRow},${currCol}`];
+            delete this.matrix[`${currRow},${currCol}`]; 
         }
     }
 
@@ -103,13 +103,56 @@ class SparseMatrix {
     }
 
     toString() {
-        let result = `rows=${this.numRows}\ncols=${this.numCols}\n`;
+        let result = `rows=${this.numRows}\\ncols=${this.numCols}\n`; 
         for (const [key, value] of Object.entries(this.matrix)) {
             const [row, col] = key.split(',').map(Number);
-            result += `{${row},${col},${value}}\n`;
+            result += `{${row},${col},${value}}\n`; 
         }
         return result;
     }
 }
 
-module.exports = SparseMatrix;  // Export SparseMatrix class
+const sampleInputsPath = path.join('Sample_inputs');
+const outputsPath = path.join('Outputs');
+
+if (!fs.existsSync(outputsPath)) {
+    fs.mkdirSync(outputsPath);
+}
+
+try {
+    const files = fs.readdirSync(sampleInputsPath);
+    if (files.length === 0) {
+        throw new Error("No files found in the Sample_inputs directory.");
+    }
+
+    files.forEach(file => {
+        const filePath = path.join(sampleInputsPath, file);
+        const baseFileName = path.parse(file).name;
+
+        const sparseMatrix1 = new SparseMatrix(filePath);
+        const sparseMatrix2 = new SparseMatrix(null, sparseMatrix1.numRows, sparseMatrix1.numCols);
+
+        const resultAddition = sparseMatrix1.add(sparseMatrix2);
+        const resultSubtraction = sparseMatrix1.subtract(sparseMatrix2);
+
+        const additionResultPath = path.join(outputsPath, `${baseFileName}_additionResult.txt`);
+        const subtractionResultPath = path.join(outputsPath, `${baseFileName}_subtractionResult.txt`);
+
+        fs.writeFileSync(additionResultPath, resultAddition.toString());
+        fs.writeFileSync(subtractionResultPath, resultSubtraction.toString());
+
+        console.log('Addition Result saved to ' + additionResultPath);
+        console.log('Subtraction Result saved to ' + subtractionResultPath);
+
+        if (sparseMatrix1.numCols === sparseMatrix2.numRows) {
+            const multiplicationResultPath = path.join(outputsPath, `${baseFileName}_multiplicationResult.txt`);
+            const resultMultiplication = sparseMatrix1.multiply(sparseMatrix2);
+            fs.writeFileSync(multiplicationResultPath, resultMultiplication.toString());
+            console.log('Multiplication Result saved to ' + multiplicationResultPath);
+        } else {
+            console.log('Matrices are incompatible for multiplication.');
+        }        
+    });
+} catch (error) {
+    console.error(error.message);
+}
